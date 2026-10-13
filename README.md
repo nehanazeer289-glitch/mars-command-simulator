@@ -1,9 +1,7 @@
 \# 🚀 Mars Command Simulator
 ## 🚀 Live Demo
 
-**Try Mars Command Simulator:** https://primenehaabhinav.streamlit.app/
 
-*The Command That Arrived Too Late.*
 
 \### The Command That Arrived Too Late
 
