@@ -1,5 +1,6 @@
 
 import streamlit as st
+import pandas as pd
 from backend.engine import RoverEngine
 from backend.models import RoverState
 
@@ -38,6 +39,8 @@ if "pending" not in st.session_state:
     st.session_state.pending = []
 if "history" not in st.session_state:
     st.session_state.history = []
+if "route" not in st.session_state:
+    st.session_state.route = [(0, 0)]
 if "next_id" not in st.session_state:
     st.session_state.next_id = 1
 
@@ -60,6 +63,9 @@ def process_arrived_commands():
                 item["Reason"] = result.reason
                 item["Position after"] = str(result.position_after)
                 break
+
+        if result.position_after != result.position_before:
+            st.session_state.route.append(result.position_after)
 
         st.session_state.pending.remove(command)
 
@@ -153,16 +159,25 @@ with x:
         st.session_state.engine = create_engine()
         st.session_state.pending = []
         st.session_state.history = []
+        st.session_state.route = [(0, 0)]
         st.session_state.next_id = 1
         st.session_state.last_notice = ""
         st.rerun()
 
 with y:
-    st.subheader("Surface map")
+    st.subheader("Rover surface map")
 
+    map_data = pd.DataFrame(
+        st.session_state.route,
+        columns=["x", "y"],
+    )
+    st.line_chart(map_data, x="x", y="y")
+
+    st.caption("Route history: each point represents a rover position.")
+
+    st.subheader("Terrain grid")
     for row in range(2, -1, -1):
         line = []
-
         for col in range(7):
             if (col, row) == (rover.x, rover.y):
                 line.append("🛰️")
@@ -170,18 +185,39 @@ with y:
                 line.append("🪨")
             else:
                 line.append("▫️")
-
         st.code(" ".join(line), language=None)
 
     st.caption("🛰️ Rover   🪨 Obstacle   ▫️ Clear terrain")
 
 st.divider()
+st.subheader("Command queue")
+
+if st.session_state.pending:
+    queue_rows = []
+    for cmd in st.session_state.pending:
+        queue_rows.append({
+            "Command": cmd.command_id,
+            "Action": cmd.action,
+            "Arrival step": cmd.arrival_step,
+            "Steps remaining": max(
+                0, cmd.arrival_step - rover.current_step
+            ),
+            "Status": "IN TRANSIT",
+        })
+    st.dataframe(
+        queue_rows,
+        width="stretch",
+        hide_index=True,
+    )
+else:
+    st.info("No commands currently in transit.")
+
 st.subheader("Command transmission timeline")
 
 if st.session_state.history:
     st.dataframe(
         st.session_state.history,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 else:
