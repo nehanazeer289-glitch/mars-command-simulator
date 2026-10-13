@@ -86,6 +86,14 @@ mars-command-simulator/
 
 
 
+## Deploy to Streamlit Community Cloud
+
+1. Push this repository to GitHub.
+2. In [Streamlit Community Cloud](https://share.streamlit.io/), select **Create app** and connect the repository.
+3. Select the branch containing this deployment setup and set the main file path to `streamlit_app.py`, then deploy.
+
+Cloud installs the app dependencies from `requirements.txt`. No secrets or additional configuration are required.
+
 \## ⚙️ Run Locally
 
 
